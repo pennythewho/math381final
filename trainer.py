@@ -1,5 +1,4 @@
 import string
-from pprint import pformat
 
 def parseFile(fname, stripPunc=False):
     """  Opens a file, optionally strips it of punctuation, and splits it into words
