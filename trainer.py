@@ -1,5 +1,4 @@
 import string
-from itertools import groupby
 
 def parseFile(fname, stripPunc=True):
     """  Opens a file, optionally strips it of punctuation, and splits it into words
@@ -20,11 +19,23 @@ def parseFile(fname, stripPunc=True):
 def getGraph(words, n):
     #  TODO: handle looping at end of words (see itertools.cycle)
     phrases = [' '.join(words[i:i+n]) for i in range(0,len(words) - n + 1)]
-    transitions = [(phrases[i], phrases[i + n]) for i in range(0, len(phrases) - n)]
-    transitions.sort()
-    transitionCounts = {t: len(list(g)) for t,g in groupby(transitions)}
-    totalTransitions = len(transitions)
-    return {t: transitionCounts[t]*1.0/totalTransitions for t in transitionCounts}
+    # graphout is a dict of dicts, with keys in the outer dict representing distinct phrases
+    # the inner dict keys are the phrases that follow the key in the outer dict
+    # the value of the inner dict is a TransitionStats object, which has count and prob properties
+    graphout = {p:{} for p in phrases}  # start the dict with just keys
+    for i in range(0,len(phrases) - n):     # so far, no looping so ignore phrases at end
+        # if next phrase is a repeat, get the TransitionStats obj so you can update it
+        # if the key isn't found, create a new TransitionStats obj
+        t = graphout[phrases[i]].get(phrases[i+n], TransitionStats())
+        t.incrementCount()
+        graphout[phrases[i]][phrases[i+n]] = t  # update the graphout with the updated stats
+    sumtrans = lambda p: sum([ts.count for ts in graphout[p].values()])
+    # TODO: remove items from graphout that have no following phrases?  s/b unnecessary if we add looping
+    # set probabilities based on the counts for each leading phrase
+    for lp in graphout:
+        for ts in graphout[lp].values():
+            ts.updProb(sumtrans(lp))
+    return graphout
 
 
 
@@ -34,6 +45,16 @@ def getGraph(words, n):
 
 
 punctranslator = str.maketrans({key: None for key in string.punctuation})
+
+class TransitionStats:
+    count = 0
+    prob = 0.0
+    def incrementCount(self):
+        self.count +=1
+    def updProb(self, leadingPhraseCount):
+        self.prob = self.count / leadingPhraseCount
+
+
 
 
 
