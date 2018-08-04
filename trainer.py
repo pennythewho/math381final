@@ -1,4 +1,5 @@
 import string
+from pprint import pformat
 
 def parseFile(fname, stripPunc=True):
     """  Opens a file, optionally strips it of punctuation, and splits it into words
@@ -39,20 +40,20 @@ def getGraph(words, n):
 
 
 
-
-
-
-
-
 punctranslator = str.maketrans({key: None for key in string.punctuation})
 
 class TransitionStats:
     count = 0
     prob = 0.0
+    def __init__(self, count=0):
+        self.count = count
     def incrementCount(self):
         self.count +=1
     def updProb(self, leadingPhraseCount):
         self.prob = self.count / leadingPhraseCount
+    def __repr__(self):
+        return 'count: {0.count}, prob: {0.prob}'.format(self)
+
 
 
 
