@@ -1,7 +1,7 @@
 import string
 from pprint import pformat
 
-def parseFile(fname, stripPunc=True):
+def parseFile(fname, stripPunc=False):
     """  Opens a file, optionally strips it of punctuation, and splits it into words
 
     :param fname:               the full or relative path to the file to be opened
