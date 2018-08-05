@@ -1,7 +1,7 @@
 import random, time
 from itertools import accumulate
 
-def generateText(srcGraph, targetLen=100):
+def generateText(srcGraph, targetLen=25):
     out = []
     random.seed(time.time())
     out.append(list(srcGraph.keys())[random.randrange(len(srcGraph))]) # TODO: capitalize this later (not now, b/c then you might not find it in the srcGraph)
