@@ -1,5 +1,7 @@
 # math381final
 text prediction using markov chains
+tested in Python 3.7
+requires Python 3.5 or higher
 
 example call to create graph:
 

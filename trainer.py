@@ -16,26 +16,31 @@ def parseFile(fname, stripPunc=False):
     return tuple(words)
 
 
-def getGraph(words, n):
-    #  TODO: handle looping at end of words (see itertools.cycle)
-    phrases = [' '.join(words[i:i+n]) for i in range(0,len(words) - n + 1)]
-    # graphout is a dict of dicts, with keys in the outer dict representing distinct phrases
-    # the inner dict keys are the phrases that follow the key in the outer dict
+def getGraph(words, n, initgraph={}):
+    #  TODO: handle looping at end of words (use itertools.cycle?)
+    ngrams = [' '.join(words[i:i+n]) for i in range(0,len(words) - n + 1)]
+    # graphout is a dict of dicts, with keys in the outer dict representing distinct n-grams
+    # the inner dict keys are the n-grams that follow the key in the outer dict
     # the value of the inner dict is a TransitionStats object, which has count and prob properties
-    graphout = {p:{} for p in phrases}  # start the dict with just keys
-    for i in range(0,len(phrases) - n):     # so far, no looping so ignore phrases at end
-        # if next phrase is a repeat, get the TransitionStats obj so you can update it
+    graphout = {p:{} for p in ngrams if p not in initgraph}  # start the dict with just keys not already in initgraph
+    graphout = {**graphout, **initgraph}    # now combine the two
+    for i in range(0,len(ngrams) - n):     # so far, no looping so ignore n-grams at end
+        # if next n-gram has already been seen, get the TransitionStats obj so you can update it
         # if the key isn't found, create a new TransitionStats obj
-        t = graphout[phrases[i]].get(phrases[i+n], TransitionStats())
+        t = graphout[ngrams[i]].get(ngrams[i+n], TransitionStats())
         t.incrementCount()
-        graphout[phrases[i]][phrases[i+n]] = t  # update the graphout with the updated stats
-    sumtrans = lambda p: sum([ts.count for ts in graphout[p].values()])
-    # TODO: remove items from graphout that have no following phrases?  s/b unnecessary if we add looping
-    # set probabilities based on the counts for each leading phrase
+        graphout[ngrams[i]][ngrams[i+n]] = t  # update the graphout with the updated stats
+    # TODO: remove items from graphout that have no following ngrams?  s/b unnecessary if we add looping
+    # set probabilities based on the counts for each leading n-gram
     for lp in graphout:
         for ts in graphout[lp].values():
-            ts.updProb(sumtrans(lp))
+            ts.updProb(_getTotalTransitions(graphout, lp))
     return graphout
+
+
+def _getTotalTransitions(graph, ngram):
+    return sum([ts.count for ts in graph[ngram].values()])
+
 
 
 
@@ -46,8 +51,8 @@ class TransitionStats:
     prob = 0.0
     def __init__(self, count=0):
         self.count = count
-    def incrementCount(self):
-        self.count +=1
+    def incrementCount(self, c=1):
+        self.count += c
     def updProb(self, leadingPhraseCount):
         self.prob = self.count / leadingPhraseCount
     def __repr__(self):
