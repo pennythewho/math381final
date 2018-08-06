@@ -7,14 +7,17 @@ example call to create graph:
 
 ```python
 import trainer, textGenerator
-words = trainer.parseFile('input/AliceInWonderland.txt')
-graph = trainer.getGraph(words,2)
-# take a look at the graph
-len(words)
-len(graph)  
-# look at a random key
-key=list(graph.keys())[25]
-graph[key]
-# generate some text
-textGenerator.generateText(graph)
+pp = trainer.parseFile('input/PrideAndPrejudice.txt')
+p = trainer.parseFile('input/Persuasion.txt')
+e = trainer.parseFile('input/Emma.txt')
+ss = trainer.parseFile('input/SenseAndSensibility.txt')
+mp = trainer.parseFile('input/MansfieldPark.txt')
+na = trainer.parseFile('input/NorthangerAbbey.txt')
+austen2 = trainer.getGraph(pp,2)
+austen2 = trainer.getGraph(p,2,austen2)
+austen2 = trainer.getGraph(e,2,austen2)
+austen2 = trainer.getGraph(ss,2,austen2)
+austen2 = trainer.getGraph(mp,2,austen2)
+austen2 = trainer.getGraph(na,2,austen2)
+textGenerator.generateText(austen2,30)
 ````

@@ -18,6 +18,9 @@ def parseFile(fname, stripPunc=False):
 
 def getGraph(words, n, initgraph={}):
     #  TODO: handle looping at end of words (use itertools.cycle?)
+    if initgraph and n != len(list(initgraph.keys())[0].split()):
+        raise ValueError('You can only add n-grams of the same size to an existing graph.')
+
     ngrams = [' '.join(words[i:i+n]) for i in range(0,len(words) - n + 1)]
     # graphout is a dict of dicts, with keys in the outer dict representing distinct n-grams
     # the inner dict keys are the n-grams that follow the key in the outer dict
@@ -40,8 +43,6 @@ def getGraph(words, n, initgraph={}):
 
 def _getTotalTransitions(graph, ngram):
     return sum([ts.count for ts in graph[ngram].values()])
-
-
 
 
 punctranslator = str.maketrans({key: None for key in string.punctuation})
