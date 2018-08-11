@@ -1,12 +1,14 @@
 import random, time
 from itertools import accumulate
 
+from trainer import sentenceEndingPunc
+
 def generateText(srcGraph, targetLen=25):
     out = []
     random.seed(time.time())
     out.append(list(srcGraph.keys())[random.randrange(len(srcGraph))]) # TODO: capitalize this later (not now, b/c then you might not find it in the srcGraph)
     # keep generating until the length exceeds the targetLen but also require finishing a sentence
-    while len(out) < targetLen or out[-1][-1] not in ['.','!','?']:
+    while len(out) < targetLen or out[-1][-1] not in sentenceEndingPunc:
         # get next phrases - needs to be sorted to match probabilities properly
         nextPhrases = srcGraph[out[-1]]         # a dict of next keys and their probabilities
         sortedPhrases = sorted(nextPhrases)     # sorted keys of nextPhrases
