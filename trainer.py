@@ -29,10 +29,10 @@ def getGraph(words, n, initgraph={}):
     if initgraph and n != len(list(initgraph.keys())[0].split()):
         raise ValueError('You can only add n-grams of the same size to an existing graph.')
 
-    ngrams = [' '.join(words[i:i+n]) for i in range(0,len(words) - n + 1)]
-    graphout = {p: {} for p in ngrams if p not in initgraph}    # add new ngrams
+    ngrams = [' '.join(words[i:i+n]) for i in range(0,len(words) - n + 1)]  # all n-grams same length
+    graphout = {p: {} for p in ngrams[0:-n] if p not in initgraph}    # add new ngrams (except ones at the end)
     graphout = {**graphout, **initgraph}        # combine the two
-    for i in range(0,len(ngrams) - n):     # so far, no looping so ignore n-grams at end
+    for i in range(0, len(ngrams) - n):
         # if next n-gram has already been seen, get the TransitionStats obj so you can update it
         # if the key isn't found, create a new TransitionStats obj
         t = graphout[ngrams[i]].get(ngrams[i+n], TransitionStats())
