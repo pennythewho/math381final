@@ -8,11 +8,20 @@ def transitionMatrix(graph):
     msize = len(graph); # matrix size, number of unique entries
     t_mat = numpy.zeros((msize,msize)); # transistion matrix
     keys = list(graph.keys()); # list of unique keys
+#    helper1 = list(graph.keys()); # equal to keys
+#    helper2 = list(graph.values());
+#    helper3 = []
+#    for i in range(len(helper2)):
+#        helper3.append(list(helper2[i].keys())[0])
     for i in range(msize): # note i is the row position
         words = list(graph[keys[i]]); # list of possible words following current word
         for j in range(len(words)): # iterate through above words
-            clm_pos = keys.index(words[j]); # find position of this word
-            t_mat[i,clm_pos] = graph[keys[i]][words[j]].prob; # set the probability
+            try:
+                clm_pos = keys.index(words[j]); # find position of this word
+                t_mat[i,clm_pos] = graph[keys[i]][words[j]].prob; # set the probability
+            except:
+                # do nothing -- seriously buggy if we get here
+                continue
     return numpy.transpose(numpy.matrix(t_mat)); # format it
 
 # usage example below
