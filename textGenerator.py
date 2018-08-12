@@ -18,7 +18,7 @@ def generateText(srcGraph, targetLen=25, firstNgram=None, forceCap=False):
     out.append(firstNgram if not forceCap else firstNgram.capitalize())
     lastNgram = firstNgram
     # keep generating until the length exceeds the targetLen but also require finishing a sentence
-    while len(out) < targetLen or out[-1][-1] not in sentenceEndingPunc:
+    while not _isLongEnough(out, targetLen):
         # get next phrases - needs to be sorted to match probabilities properly
         nextPhrases = srcGraph[lastNgram]       # a dict of next keys and their probabilities
         sortedPhrases = sorted(nextPhrases)     # sorted keys of nextPhrases
@@ -36,5 +36,13 @@ def _cappedNgram(ngram, lastngram):
     # for all but the first word, capitalize if the previous word ended a sentence
     words = [words[0]] + [words[i].capitalize() if words[i-1][-1] in sentenceEndingPunc else words[i] for i in range(1, len(words))]
     return ' '.join(words)
+
+def _isLongEnough(out, targetLen):
+    # want it to be the target length but settle for the last n-gram containing the end of a sentence
+    return len(out) > targetLen and any((c in sentenceEndingPunc) for c in out[-1])
+
+
+
+
 
 
