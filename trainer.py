@@ -23,12 +23,15 @@ def parseFile(fname, stripPunc=False, stripCaps=False):
     return tuple(words)
 
 
-def getGraph(words, n, initgraph={}):
+def getGraph(words, n, initgraph={}, includeTrailingNgrams=False):
     """ Returns a graph
 
-    :param words:
-    :param n:
-    :param initgraph:
+    :param words:       the source document parsed into words
+    :param n:           the length of n-grams
+    :param initgraph:   another graph to which the n-grams in words should be added
+    :param includeTrailingNgrams:  True to include n-grams at the end of the source that have no following n-grams
+                        Should only be used to generate a full Markov transition matrix
+                        text generation may fail if given a graph (especially a small one) with this set to true
     :return:            a dict of dicts, with keys in the outer dict representing distinct n-grams
                         the inner dict keys are the n-grams that follow the key in the outer dict
                         the value of the inner dict is a TransitionStats object, which has count and prob properties
@@ -36,8 +39,9 @@ def getGraph(words, n, initgraph={}):
     if initgraph and n != len(list(initgraph.keys())[0].split()):
         raise ValueError('You can only add n-grams of the same size to an existing graph.')
 
-    ngrams = [' '.join(words[i:i+n]) for i in range(0,len(words) - n + 1)]  # all n-grams same length
-    graphout = {p: {} for p in ngrams[0:-n] if p not in initgraph}    # add new ngrams (except ones at the end)
+    ngrams = [' '.join(words[i:i+n]) for i in range(0, len(words) - n + 1)]  # all n-grams same length
+    leadingngrams = ngrams[0:-n] if not includeTrailingNgrams else ngrams
+    graphout = {p: {} for p in leadingngrams if p not in initgraph}    # add new ngrams (except ones at the end)
     graphout = {**graphout, **initgraph}        # combine the two
     for i in range(0, len(ngrams) - n):
         # if next n-gram has already been seen, get the TransitionStats obj so you can update it
@@ -52,13 +56,16 @@ def getGraph(words, n, initgraph={}):
             ts.updProb(totalTransitions[lp])
     return graphout
 
+
 def _getCapped(words):
     return {w for w in words if w == w.capitalize() or w == w.upper()}
+
 
 def _getCappedWithoutBeginningSentence(words):
     return {words[i] for i in range(0, len(words))
             if (words[i] == words[i].capitalize() or words[i] == words[i].upper())   # first letter or entire word capped
             and i != 0 and words[i-1][-1] not in sentenceEndingPunc}    # not first word and does not begin sentence
+
 
 def _getNoPunc(words):
     return {w.translate(strippunctrans) for w in words}
@@ -67,32 +74,10 @@ def _getNoPunc(words):
 def _getTotalTransitions(graph, ngram):
     return sum([ts.count for ts in graph[ngram].values()])
 
-# def _getAlwaysCapitalized(words):
-#     """ Gets elements in words that are capitalized at least once without following a sentence-ending punctuation mark
-#     and that never appear uncapitalized
-#
-#     :param words:   A list of words
-#     :return:        Those elements of words that should always be capitalized
-#     """
-#     lowerwords = {w.lower() for w in words}
-#     sanspuncwords = {w.translate(strippunctrans) for w in words}
-#     # get list of words that never appear without being followed by a period, ignoring capitalization
-#     alwayshasperiod = {w for w in words if w.endswith('.') and w.lower().translate(strippunctrans) not in lowerwords}
-#     # get list of words that never appear without being capitalized, ignoring punctuation
-#     alwayscapped = {w for w in words if w == w.capitalize() and w.translate(strippunctrans).lower() not in sanspuncwords}
-#     caps = {w.translate(strippunctrans) for w in words if w == w.capitalize()}
-#     caps = {c for c in caps if c.lower not in words}    # never appears uncapitalized
-#     pass
-
-
-
-
 
 sentenceEndingPunc = ['.', '!', '?']
 punc = string.punctuation + '\u2018' + '\u2019' + '\u201c' + '\u201d'   # add smart quotes
-# TODO: remove apostrophe from punc?
 strippunctrans = str.maketrans({key: None for key in punc})
-keepperiodtrans = str.maketrans({key: None for key in punc if key != '.'})
 
 class TransitionStats:
     count = 0
