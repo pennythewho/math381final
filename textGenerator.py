@@ -3,9 +3,11 @@ from itertools import accumulate
 
 from trainer import sentenceEndingPunc
 
-def generateText(srcGraph, targetLen=25, firstNgram=None, forceCap=False):
+def generateText(srcGraph, targetLen=50, firstNgram=None, forceCap=False):
     """
-
+    :param targetLen:   the target number of words (NOT the target number of n-grams) in the generated text
+                        this is just a target - we try to end the output near the end of a sentence so the output
+                        might be longer than requested
     :param firstNgram:  allows user choosing the starting n-gram
                         if None or an n-gram that doesn't exist in srcGraph, one will be chosen at random
     :param forceCap:    if True, any word following a sentenceEndingPunc will be capitalized
@@ -38,8 +40,9 @@ def _cappedNgram(ngram, lastngram):
     return ' '.join(words)
 
 def _isLongEnough(out, targetLen):
-    # want it to be the target length but settle for the last n-gram containing the end of a sentence
-    return len(out) > targetLen and any((c in sentenceEndingPunc) for c in out[-1])
+    # want it to be the target length but also have the last n-gram contain the end of a sentence
+    n = len(out[-1].split())    # length of n-grams
+    return len(out) >= targetLen/n and any((c in sentenceEndingPunc) for c in out[-1])
 
 
 
