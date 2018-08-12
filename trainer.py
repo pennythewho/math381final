@@ -46,9 +46,10 @@ def getGraph(words, n, initgraph={}):
         t.incrementCount()
         graphout[ngrams[i]][ngrams[i+n]] = t  # update the graphout with the updated stats
     # set probabilities based on the counts for each leading n-gram
+    totalTransitions = {k: _getTotalTransitions(graphout, k) for k in graphout}
     for lp in graphout:
         for ts in graphout[lp].values():
-            ts.updProb(_getTotalTransitions(graphout, lp))
+            ts.updProb(totalTransitions[lp])
     return graphout
 
 def _getCapped(words):
