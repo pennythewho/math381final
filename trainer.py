@@ -1,18 +1,25 @@
 import string
 
-def parseFile(fname, stripPunc=False):
+def parseFile(fname, stripPunc=False, stripCaps=False):
     """  Opens a file, optionally strips it of punctuation, and splits it into words
 
-    :param fname:               the full or relative path to the file to be opened
-    :param stripPunc:           True to remove all punctuation, leaving just characters to form words
-                                False to keep punctuation
-    :return:                    An ordered immutable iteratable where each element is a word in the file
+    :param fname:       the full or relative path to the file to be opened
+    :param stripPunc:   True to remove all punctuation listed in punc, leaving just characters to form words
+    :param stripCaps:   True to strip capitalization from words that meet all the following criteria:
+                            - first letter or entire words capitalized
+                            - only appear capped following sentenceEndingPunc
+                            - appears at least once without capitalization when doc examined ignoring punctuation
+    :return:            An ordered immutable iterable where each element is a word in the file
     """
 
     with open(fname, mode='rt', buffering=1) as f:
         words = f.read().split()
     if stripPunc:
         words = [w.translate(strippunctrans) for w in words]
+    if stripCaps:
+        tostrip = {w for w in _getCapped(words).difference(_getCappedWithoutBeginningSentence(words))
+                   if w.lower().translate(strippunctrans) in _getNoPunc(words)}
+        words = [w.lower() if w in tostrip else w for w in words]
     return tuple(words)
 
 
@@ -44,6 +51,17 @@ def getGraph(words, n, initgraph={}):
             ts.updProb(_getTotalTransitions(graphout, lp))
     return graphout
 
+def _getCapped(words):
+    return {w for w in words if w == w.capitalize() or w == w.upper()}
+
+def _getCappedWithoutBeginningSentence(words):
+    return {words[i] for i in range(0, len(words))
+            if (words[i] == words[i].capitalize() or words[i] == words[i].upper())   # first letter or entire word capped
+            and i != 0 and words[i-1][-1] not in sentenceEndingPunc}    # not first word and does not begin sentence
+
+def _getNoPunc(words):
+    return {w.translate(strippunctrans) for w in words}
+
 
 def _getTotalTransitions(graph, ngram):
     return sum([ts.count for ts in graph[ngram].values()])
@@ -60,8 +78,8 @@ def _getTotalTransitions(graph, ngram):
 #     # get list of words that never appear without being followed by a period, ignoring capitalization
 #     alwayshasperiod = {w for w in words if w.endswith('.') and w.lower().translate(strippunctrans) not in lowerwords}
 #     # get list of words that never appear without being capitalized, ignoring punctuation
-#     alwayscapped = {w for w in words if w == w.title() and w.translate(strippunctrans).lower() not in sanspuncwords}
-#     caps = {w.translate(strippunctrans) for w in words if w == w.title()}
+#     alwayscapped = {w for w in words if w == w.capitalize() and w.translate(strippunctrans).lower() not in sanspuncwords}
+#     caps = {w.translate(strippunctrans) for w in words if w == w.capitalize()}
 #     caps = {c for c in caps if c.lower not in words}    # never appears uncapitalized
 #     pass
 
