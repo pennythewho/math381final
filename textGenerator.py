@@ -23,12 +23,12 @@ def generateText(srcGraph, targetLen=50, firstNgram=None, forceCap=False):
     # also requires that the lastNgram has something following it
     while not _isLongEnough(out, targetLen) and srcGraph[lastNgram]:
         # get next phrases - needs to be sorted to match probabilities properly
-        nextPhrases = srcGraph[lastNgram]       # a dict of next keys and their probabilities
-        sortedPhrases = sorted(nextPhrases)     # sorted keys of nextPhrases
-        npp = accumulate([nextPhrases[p].prob for p in sortedPhrases])
-        i = 0 if len(nextPhrases) == 1 else next(x[0] for x in enumerate(npp) if x[1] >= random.random())
-        out.append(sortedPhrases[i] if not forceCap else _cappedNgram(sortedPhrases[i], lastNgram))
-        lastNgram = sortedPhrases[i]
+        innerGraph = srcGraph[lastNgram]        # a dict of next keys and their TransitionStats
+        nextPhrases = [p for p in innerGraph]   # just the keys
+        npp = accumulate([innerGraph[p].prob for p in nextPhrases])
+        i = 0 if len(innerGraph) == 1 else next(x[0] for x in enumerate(npp) if x[1] >= random.random())
+        out.append(nextPhrases[i] if not forceCap else _cappedNgram(nextPhrases[i], lastNgram))
+        lastNgram = nextPhrases[i]
     return ' '.join(out)
 
 def _cappedNgram(ngram, lastngram):
