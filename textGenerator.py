@@ -31,8 +31,8 @@ def generateText(srcGraph, targetLen=50, firstNgram=None, forceCap=False, includ
         i = 0 if len(innerGraph) == 1 else next(x[0] for x in enumerate(npp) if x[1] >= random.random())
         out.append(nextPhrases[i] if not forceCap else _cappedNgram(nextPhrases[i], lastNgram))
         lastNgram = nextPhrases[i]
-        out = out[_getFirstSentenceIdx(out):]
-    return stripIncompleteSentences(' '.join(out)) if includeIncompleteSentences else ' '.join(out)
+        out = out if includeIncompleteSentences else out[_getFirstSentenceIdx(out):]
+    return ' '.join(out) if includeIncompleteSentences else stripIncompleteSentences(' '.join(out))
 
 def _cappedNgram(ngram, lastngram):
     # capitalize the first word if the lastngram exists and ended a sentence
