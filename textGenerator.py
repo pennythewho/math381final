@@ -51,10 +51,7 @@ def _isLongEnough(out, targetLen):
 
 def _getFirstSentenceIdx(out):
     lo = len(out)
-    begin = _findFirstInstance(out, sentenceEndingPunc, endIdx=lo)
-    # if the sentence-ending punctuation is at the end of the n-gram, return the index of the next n-gram
-    # but prevent stripping away the entire output so far
-    return begin + 1 if begin < lo - 1 and out[begin][-1] in sentenceEndingPunc else begin
+    return _findFirstInstance(out, sentenceEndingPunc, endIdx=lo)
 
 def _findFirstInstance(text, searchChars, beginIdx=0, endIdx=None, searchBackwards=False):
     if endIdx == None:
