@@ -1,5 +1,5 @@
 import trainer, textGenerator, numpy
-graph = trainer.getGraph(trainer.parseFile('input/TheIliad.txt'),1)
+graph = trainer.getGraph(trainer.parseFile('input/fellowship of the ring summary.txt'),1)
 
 #%%
 #helper1 = list(graph.keys());
