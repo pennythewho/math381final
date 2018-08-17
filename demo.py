@@ -13,22 +13,35 @@ def _getInputFiles():
     lfe = len(fileExt)
     return sorted([f[:-lfe] for f in  listdir(pathToInput) if f.endswith(fileExt)])
 
+
 def generate(*args):
     try:
+        txtintxt['state'] = 'disabled' # disable user input textbox so nothing can be changed while text is generated
         files = [inputs[i] for i in inputlist.curselection()]
         n = int(nvar.get())
         l = int(lenvar.get())
         includeIncomplete = incomp.get() == '1'
-        graph = {}
-        for f in files:
-            graph = trainer.getGraph(trainer.parseFile(pathToInput+'/'+f+fileExt), n, graph)
-        gentxt = tg.generateText(graph, l, includeIncompleteSentences=includeIncomplete)
-        txtsrc.set('Generated from '+', '.join(files))
-        txtouttxt['state'] = 'normal'
-        txtouttxt.replace(1.0,END,gentxt)
-        txtouttxt['state'] = 'disabled'
+        uinput = txtintxt.get(1.0, END)
     except:
         pass
+
+    graph = {}
+    outputlab = 'Generated from '
+    if uinput:
+        graph = trainer.getGraph(uinput.split(), n)
+        outputlab += 'user input and '
+    for f in files:
+        graph = trainer.getGraph(trainer.parseFile(pathToInput + '/' + f + fileExt), n, graph)
+    gentxt = tg.generateText(graph, l, includeIncompleteSentences=includeIncomplete)
+    txtsrc.set(outputlab + (', '.join(files) if files else 'nothing else'))
+    txtouttxt['state'] = 'normal'
+    txtouttxt.replace(1.0, END, gentxt)
+    txtouttxt['state'] = 'disabled'
+    txtintxt['state'] = 'normal'  # reenable user input textbox
+
+
+def clearUserInput():
+    txtintxt.delete(1.0,END)
 
 
 
@@ -65,10 +78,16 @@ incompcb.grid(column=2, row=3, sticky = (S,W,E))
 genbutton = Button(mainframe, text='generate', command=generate)
 genbutton.grid(column=3,row=3,sticky=(N,W,E))
 
+Label(mainframe, text='User input').grid(column=1, row=4, columnspan=3, sticky=(N,W))
+clrbutton = Button(mainframe, text='clear', command=clearUserInput)
+clrbutton.grid(column=2, row=4, sticky=(N,W))
+txtintxt = Text(mainframe, height=10, width=55, wrap='word', state='normal')
+txtintxt.grid(column=1, row=5, columnspan=3, sticky=(S,W))
+
 txtsrc = StringVar()
-Label(mainframe, textvariable=txtsrc).grid(column=1, row=4, columnspan=3, sticky=(N,W))
+Label(mainframe, textvariable=txtsrc).grid(column=1, row=6, columnspan=3, sticky=(N,W))
 txtouttxt = Text(mainframe, width = 55, wrap='word', state='disabled')
-txtouttxt.grid(column=1, row=5, columnspan=3, sticky=(S,W))
+txtouttxt.grid(column=1, row=7, columnspan=3, sticky=(S,W))
 
 for child in mainframe.winfo_children():
     child.grid_configure(padx=5, pady=5)
